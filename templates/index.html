@@ -4,413 +4,411 @@
     <meta charset="UTF-8">
     <title>Weather Forecast App</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: #333;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 30px;
-            font-size: 2.5rem;
-            font-weight: 300;
-        }
-
-        .search-form {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-            gap: 10px;
-        }
-
-        .search-input {
-            padding: 15px 20px;
-            width: 300px;
-            border: 2px solid #e0e0e0;
-            border-radius: 50px;
-            font-size: 16px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .search-btn {
-            padding: 15px 25px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .flash-messages {
-            margin-bottom: 20px;
-        }
-
-        .flash-message {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            font-weight: 500;
-        }
-
-        .flash-error {
-            background: #ffe6e6;
-            color: #d63031;
-            border-left: 4px solid #d63031;
-        }
-
-        .current-weather {
-            text-align: center;
-            margin: 30px 0;
-            padding: 25px;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .city-name {
-            font-size: 1.8rem;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-
-        .weather-icon {
-            width: 80px;
-            height: 80px;
-            margin: 10px 0;
-        }
-
-        .temperature {
-            font-size: 3rem;
-            font-weight: 300;
-            color: #2c3e50;
-            margin: 15px 0;
-        }
-
-        .feels-like {
-            color: #666;
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-        }
-
-        .description {
-            font-size: 1.2rem;
-            color: #555;
-            margin-bottom: 20px;
-            font-style: italic;
-        }
-
-        .weather-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .detail-item {
-            padding: 10px;
-            background: white;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .detail-label {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 5px;
-        }
-
-        .detail-value {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .forecast-section {
-            margin-top: 40px;
-        }
-
-        .forecast-title {
-            font-size: 1.5rem;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .forecast-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 15px;
-            overflow-x: auto;
-            padding: 10px 0;
-        }
-
-        .forecast-day {
-            padding: 20px;
-            background: linear-gradient(135deg, #ffffff, #f8f9fa);
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .forecast-day:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .forecast-date {
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .forecast-icon {
-            width: 50px;
-            height: 50px;
-            margin: 10px 0;
-        }
-
-        .forecast-temp {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin: 10px 0;
-        }
-
-        .forecast-desc {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        .sun-times {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(255, 193, 7, 0.1);
-            border-radius: 10px;
-        }
-
-        .sun-time {
-            text-align: center;
-        }
-
-        .sun-time-label {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 5px;
-        }
-
-        .sun-time-value {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #f39c12;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-                margin: 10px;
-            }
-
-            .search-form {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .search-input {
-                width: 100%;
-                margin-bottom: 10px;
-            }
-
-            h1 {
-                font-size: 2rem;
-            }
-
-            .temperature {
-                font-size: 2.5rem;
-            }
-
-            .weather-details {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .forecast-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .sun-times {
-                flex-direction: column;
-                gap: 15px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
         <h1>🌤️ Weather Forecast</h1>
-
-        <form method="post" class="search-form">
-            <input type="text" name="city" class="search-input" placeholder="Enter city name..." value="{{ city }}" required>
-            <button type="submit" class="search-btn">Get Weather</button>
-        </form>
-
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for message in messages %}
-                        <div class="flash-message flash-error">{{ message }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-
-        <!-- Current Weather -->
-        {% if data %}
-        <div class="current-weather">
-            <div class="city-name">{{ data.city }}, {{ data.country }}</div>
-            <img class="weather-icon" src="http://openweathermap.org/img/wn/{{ data.icon }}@2x.png" alt="{{ data.description }}">
-            <div class="temperature">{{ data.temp }}°C</div>
-            <div class="feels-like">Feels like {{ data.feels_like }}°C</div>
-            <div class="description">{{ data.description }}</div>
-            
-            <div class="weather-details">
-                <div class="detail-item">
-                    <div class="detail-label">💧 Humidity</div>
-                    <div class="detail-value">{{ data.humidity }}%</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">💨 Wind Speed</div>
-                    <div class="detail-value">{{ data.wind_speed }} m/s</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">🌡️ Pressure</div>
-                    <div class="detail-value">{{ data.pressure }} hPa</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">👁️ Visibility</div>
-                    <div class="detail-value">
-                        {% if data.visibility != 'N/A' %}
-                            {{ (data.visibility / 1000) | round(1) }} km
-                        {% else %}
-                            N/A
-                        {% endif %}
-                    </div>
-                </div>
+        <div class="controls">
+            <div class="search-container">
+                <input type="text" id="cityInput" class="search-input" placeholder="Enter city name..." autocomplete="off">
+                <div id="suggestions" class="autocomplete-suggestions"></div>
             </div>
-
-            <div class="sun-times">
-                <div class="sun-time">
-                    <div class="sun-time-label">🌅 Sunrise</div>
-                    <div class="sun-time-value">{{ (data.sunrise + data.timezone) | timestamp_to_time }}</div>
-                </div>
-                <div class="sun-time">
-                    <div class="sun-time-label">🌇 Sunset</div>
-                    <div class="sun-time-value">{{ (data.sunset + data.timezone) | timestamp_to_time }}</div>
-                </div>
+            <button id="searchBtn" class="search-btn">Get Weather</button>
+            <button id="geoBtn" class="geo-btn">📍 Use My Location</button>
+            <div class="unit-switch">
+                <span class="unit-option active" data-unit="metric">°C</span>
+                <span class="unit-option" data-unit="imperial">°F</span>
             </div>
         </div>
-        {% endif %}
 
-        <!-- 5-Day Forecast -->
-        {% if forecast %}
-        <div class="forecast-section">
-            <h3 class="forecast-title">📅 5-Day Forecast</h3>
-            <div class="forecast-container">
-                {% for day in forecast %}
-                <div class="forecast-day">
-                    <div class="forecast-date">{{ day.dt | timestamp_to_date }}</div>
-                    <img class="forecast-icon" src="http://openweathermap.org/img/wn/{{ day.icon }}@2x.png" alt="{{ day.description }}">
-                    <div class="forecast-temp">{{ day.temp }}°C</div>
-                    <div class="forecast-desc">{{ day.description }}</div>
-                    <div style="margin-top: 10px; font-size: 0.8rem; color: #888;">
-                        💧 {{ day.humidity }}% | 💨 {{ day.wind_speed }} m/s
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+        <div id="loading" class="loading" style="display:none;">Loading weather data...</div>
+        <div id="errorMessage" class="error-message" style="display:none;"></div>
+
+        <div id="weatherData">
+             <!-- Weather data will be dynamically inserted here by JavaScript -->
         </div>
-        {% endif %}
     </div>
 
     <script>
-        // Add some interactivity
-        document.addEventListener('DOMContentLoaded', function() {
-            // Auto-focus search input
-            const searchInput = document.querySelector('.search-input');
-            if (searchInput && !searchInput.value) {
-                searchInput.focus();
-            }
+        document.addEventListener('DOMContentLoaded', function () {
+            const cityInput = document.getElementById('cityInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const geoBtn = document.getElementById('geoBtn');
+            const unitSwitch = document.querySelector('.unit-switch');
+            const loadingElement = document.getElementById('loading');
+            const errorMessageElement = document.getElementById('errorMessage');
+            const weatherDataElement = document.getElementById('weatherData');
+            const suggestionsContainer = document.getElementById('suggestions');
+            
+            let currentUnits = 'metric';
+            let selectedSuggestionIndex = -1;
+            let suggestions = [];
+            let lastSearch = { type: null, value: null };
 
-            // Add enter key support
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    document.querySelector('.search-btn').click();
+            cityInput.focus();
+
+            // Unit switch click handler
+            unitSwitch.addEventListener('click', (e) => {
+                const selectedOption = e.target.closest('.unit-option');
+                if (!selectedOption || selectedOption.classList.contains('active')) {
+                    return; // Do nothing if not a valid option or already active
+                }
+
+                // Update the active class
+                unitSwitch.querySelector('.active').classList.remove('active');
+                selectedOption.classList.add('active');
+
+                // Update units and re-fetch data
+                currentUnits = selectedOption.dataset.unit;
+                if (lastSearch.type) {
+                    if (lastSearch.type === 'city') {
+                        fetchWeatherDataByName(lastSearch.value);
+                    } else if (lastSearch.type === 'coords') {
+                        fetchWeatherDataByCoords(lastSearch.value.lat, lastSearch.value.lon);
+                    }
                 }
             });
 
-            // Add loading state to button
-            const form = document.querySelector('.search-form');
-            const button = document.querySelector('.search-btn');
-            const originalText = button.textContent;
-
-            form.addEventListener('submit', function() {
-                button.textContent = 'Loading...';
-                button.disabled = true;
-                
-                // Re-enable after 10 seconds as fallback
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.disabled = false;
-                }, 10000);
+            searchBtn.addEventListener('click', () => {
+                const city = cityInput.value.trim();
+                if (city) {
+                    fetchWeatherDataByName(city);
+                }
             });
+
+            cityInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < suggestions.length) {
+                        selectSuggestion(suggestions[selectedSuggestionIndex]);
+                        return;
+                    }
+                    const city = cityInput.value.trim();
+                    if (city) {
+                        fetchWeatherDataByName(city);
+                    }
+                }
+            });
+
+            geoBtn.addEventListener('click', () => {
+                if (navigator.geolocation) {
+                    showLoading();
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const lat = position.coords.latitude;
+                            const lon = position.coords.longitude;
+                            fetchWeatherDataByCoords(lat, lon);
+                        },
+                        (error) => {
+                            hideLoading();
+                             let errorMsg = 'Unable to retrieve your location.';
+                             if(error.code === error.PERMISSION_DENIED) {
+                                errorMsg = 'Location access denied. Please enable location services.';
+                             } else if (error.code === error.POSITION_UNAVAILABLE) {
+                                errorMsg = 'Location information is unavailable.';
+                             } else if (error.code === error.TIMEOUT) {
+                                errorMsg = 'The request to get user location timed out.';
+                             }
+                            showError(errorMsg);
+                        }
+                    );
+                } else {
+                    showError('Geolocation is not supported by this browser.');
+                }
+            });
+
+            // --- Autocomplete Functionality ---
+            cityInput.addEventListener('input', () => {
+                const query = cityInput.value.trim();
+                selectedSuggestionIndex = -1;
+                if (query.length >= 2) {
+                    fetchCitySuggestions(query);
+                } else {
+                    hideSuggestions();
+                }
+            });
+
+            cityInput.addEventListener('keydown', (e) => {
+                if (!suggestionsContainer.style.display || suggestionsContainer.style.display === 'none') return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, suggestions.length - 1);
+                    updateSuggestionHighlight();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, -1);
+                    updateSuggestionHighlight();
+                } else if (e.key === 'Escape') {
+                    hideSuggestions();
+                    selectedSuggestionIndex = -1;
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!cityInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                    hideSuggestions();
+                    selectedSuggestionIndex = -1;
+                }
+            });
+
+
+            function fetchCitySuggestions(query) {
+                 fetch(`/api/search?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        suggestions = data;
+                        displaySuggestions(suggestions);
+                    })
+                    .catch(err => {
+                         console.error('Autocomplete error:', err);
+                         hideSuggestions();
+                    });
+            }
+
+            function displaySuggestions(suggestionsList) {
+                suggestionsContainer.innerHTML = '';
+                if (suggestionsList.length === 0) {
+                    hideSuggestions();
+                    return;
+                }
+
+                suggestionsList.forEach((suggestion, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    item.textContent = suggestion.display;
+                    item.addEventListener('click', () => selectSuggestion(suggestion));
+                    suggestionsContainer.appendChild(item);
+                });
+                suggestionsContainer.style.display = 'block';
+            }
+
+            function hideSuggestions() {
+                suggestionsContainer.style.display = 'none';
+                selectedSuggestionIndex = -1;
+            }
+
+            function updateSuggestionHighlight() {
+                const items = suggestionsContainer.querySelectorAll('.suggestion-item');
+                items.forEach((item, index) => {
+                    item.classList.toggle('active', index === selectedSuggestionIndex);
+                });
+                if (selectedSuggestionIndex >= 0 && items[selectedSuggestionIndex]) {
+                    items[selectedSuggestionIndex].scrollIntoView({ block: 'nearest' });
+                }
+            }
+
+            function selectSuggestion(suggestion) {
+                cityInput.value = suggestion.display;
+                hideSuggestions();
+                if (suggestion.lat && suggestion.lon) {
+                     fetchWeatherDataByCoords(suggestion.lat, suggestion.lon);
+                } else {
+                     fetchWeatherDataByName(suggestion.name);
+                }
+            }
+            // --- End Autocomplete ---
+
+            function showLoading() {
+                loadingElement.style.display = 'block';
+                errorMessageElement.style.display = 'none';
+                weatherDataElement.innerHTML = '';
+                document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
+
+            function hideLoading() {
+                loadingElement.style.display = 'none';
+            }
+
+            function showError(message) {
+                errorMessageElement.textContent = message;
+                errorMessageElement.style.display = 'block';
+                weatherDataElement.innerHTML = '';
+                document.body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
+
+            function fetchWeatherDataByName(city) {
+                showLoading();
+                lastSearch = { type: 'city', value: city };
+                fetch('/api/weather', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ city: city, units: currentUnits })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw new Error(err.error || 'Unknown error'); });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    hideLoading();
+                    renderWeatherData(data);
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Fetch error:', error);
+                    showError(error.message || 'Failed to fetch weather data.');
+                });
+            }
+
+            function fetchWeatherDataByCoords(lat, lon) {
+                showLoading();
+                lastSearch = { type: 'coords', value: { lat, lon } };
+                fetch('/api/weather', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lat: lat, lon: lon, units: currentUnits })
+                })
+                .then(response => {
+                     if (!response.ok) {
+                        return response.json().then(err => { throw new Error(err.error || 'Unknown error'); });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    hideLoading();
+                    renderWeatherData(data);
+                    if (data.current && data.current.city) {
+                        cityInput.value = `${data.current.city}, ${data.current.country}`;
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    console.error('Fetch error:', error);
+                    showError(error.message || 'Failed to fetch weather data for your location.');
+                });
+            }
+
+            function renderWeatherData(data) {
+                 if (!data || !data.current) {
+                    showError('Invalid data received from server.');
+                    return;
+                }
+
+                const current = data.current;
+                const hourly = data.hourly || [];
+                const daily = data.daily || [];
+                const alerts = data.alerts || [];
+
+                document.body.style.background = current.background;
+
+                let html = '';
+
+                // --- Current Weather ---
+                html += `
+                <div class="current-weather">
+                    <div class="city-name">${current.city}, ${current.country}</div>
+                    <img class="weather-icon" src="http://openweathermap.org/img/wn/${current.icon}@2x.png" alt="${current.description}">
+                    <div class="temperature">${current.temp}${current.temp_unit}</div>
+                    <div class="feels-like">Feels like ${current.feels_like}${current.temp_unit}</div>
+                    <div class="description">${current.description}</div>
+                    <div class="weather-details">
+                        <div class="detail-item">
+                            <div class="detail-label">💧 Humidity</div>
+                            <div class="detail-value">${current.humidity}%</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">💨 Wind Speed</div>
+                            <div class="detail-value">${current.wind_speed} ${current.speed_unit}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">🌡️ Pressure</div>
+                            <div class="detail-value">${current.pressure} hPa</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">👁️ Visibility</div>
+                            <div class="detail-value">${current.visibility !== 'N/A' ? (current.visibility / 1000).toFixed(1) + ' km' : 'N/A'}</div>
+                        </div>
+                    </div>
+                    <div class="sun-times">
+                        <div class="sun-time">
+                            <div class="sun-time-label">🌅 Sunrise</div>
+                            <div class="sun-time-value">${formatTime(current.sunrise, current.timezone)}</div>
+                        </div>
+                        <div class="sun-time">
+                            <div class="sun-time-label">🌇 Sunset</div>
+                            <div class="sun-time-value">${formatTime(current.sunset, current.timezone)}</div>
+                        </div>
+                    </div>
+                </div>
+                `;
+
+                // --- Alerts ---
+                if (alerts && alerts.length > 0) {
+                    html += `<div class="alerts-section"><h3 class="alert-title">⚠️ Weather Alerts</h3>`;
+                    alerts.forEach(alert => {
+                        html += `
+                        <div class="alert-item">
+                            <div class="alert-event">${alert.event}</div>
+                            <div class="alert-description">${alert.description}</div>
+                            <div class="alert-time">Start: ${formatFullDate(alert.start)} | End: ${formatFullDate(alert.end)}</div>
+                        </div>
+                        `;
+                    });
+                    html += `</div>`;
+                }
+
+                // --- Hourly Forecast ---
+                if (hourly && hourly.length > 0) {
+                    html += `<div class="forecast-section"><h3 class="forecast-title">⏰ 24-Hour Forecast</h3><div class="forecast-container">`;
+                    hourly.forEach(hour => {
+                        html += `
+                        <div class="forecast-hour">
+                            <div class="forecast-hour-time">${formatHour(hour.dt, current.timezone)}</div>
+                            <img class="forecast-icon" src="http://openweathermap.org/img/wn/${hour.icon}@2x.png" alt="${hour.description}">
+                            <div class="forecast-temp">${hour.temp}${current.temp_unit}</div>
+                            <div class="forecast-desc">${hour.description}</div>
+                            <div class="forecast-pop">💧 ${hour.pop}%</div>
+                        </div>
+                        `;
+                    });
+                    html += `</div></div>`;
+                }
+
+                // --- Daily Forecast ---
+                if (daily && daily.length > 0) {
+                     html += `<div class="forecast-section"><h3 class="forecast-title">📅 5-Day Forecast</h3><div class="forecast-container">`;
+                     daily.forEach(day => {
+                         html += `
+                         <div class="forecast-day">
+                             <div class="forecast-date">${formatDate(day.dt, current.timezone)}</div>
+                             <img class="forecast-icon" src="http://openweathermap.org/img/wn/${day.icon}@2x.png" alt="${day.description}">
+                             <div class="forecast-temp">${day.temp_max}${current.temp_unit} / ${day.temp_min}${current.temp_unit}</div>
+                             <div class="forecast-desc">${day.description}</div>
+                             <div class="forecast-pop">💧 ${day.pop}%</div>
+                         </div>
+                         `;
+                     });
+                     html += `</div></div>`;
+                 }
+
+
+                weatherDataElement.innerHTML = html;
+            }
+
+            // --- Helper functions for formatting ---
+            function formatTime(unixTimestamp, timezoneOffset) {
+                 const date = new Date((unixTimestamp + timezoneOffset) * 1000);
+                 return date.toLocaleTimeString('en-US', { hour: '2-digit', minute:'2-digit', timeZone: 'UTC' });
+            }
+
+            function formatDate(unixTimestamp, timezoneOffset) {
+                const date = new Date((unixTimestamp + timezoneOffset) * 1000);
+                return date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
+            }
+
+             function formatFullDate(isoString) {
+                 const date = new Date(isoString);
+                 return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+             }
+
+             function formatHour(unixTimestamp, timezoneOffset) {
+                 const date = new Date((unixTimestamp + timezoneOffset) * 1000);
+                 return date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, timeZone: 'UTC' }).replace(' ', '');
+             }
+
         });
     </script>
 </body>
