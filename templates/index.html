@@ -348,11 +348,11 @@
             <div class="sun-times">
                 <div class="sun-time">
                     <div class="sun-time-label">🌅 Sunrise</div>
-                    <div class="sun-time-value">{{ (data.sunrise) | timestamp_to_time }}</div>
+                    <div class="sun-time-value">{{ (data.sunrise + data.timezone) | timestamp_to_time }}</div>
                 </div>
                 <div class="sun-time">
                     <div class="sun-time-label">🌇 Sunset</div>
-                    <div class="sun-time-value">{{ (data.sunset) | timestamp_to_time }}</div>
+                    <div class="sun-time-value">{{ (data.sunset + data.timezone) | timestamp_to_time }}</div>
                 </div>
             </div>
         </div>
@@ -412,60 +412,6 @@
                 }, 10000);
             });
         });
-        
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(showPosition, showError);
-            } else {
-                console.log("Geolocation is not supported by this browser.");
-            }
-        }
-
-        function showPosition(position) {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            
-            // Send coordinates to Flask backend
-            fetch('/geolocation', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ lat: lat, lon: lon })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.city) {
-                    document.querySelector('input[name="city"]').value = data.city;
-                    // Auto-submit the form
-                    document.querySelector('form').submit();
-                }
-            });
-        }
-
-        function showError(error) {
-            switch(error.code) {
-                case error.PERMISSION_DENIED:
-                    console.log("User denied the request for Geolocation.");
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    console.log("Location information is unavailable.");
-                    break;
-                case error.TIMEOUT:
-                    console.log("The request to get user location timed out.");
-                    break;
-                case error.UNKNOWN_ERROR:
-                    console.log("An unknown error occurred.");
-                    break;
-            }
-        }
-
-        // Auto-detect on page load
-        window.onload = function() {
-            getLocation();
-        };
-
-
     </script>
 </body>
 </html>
