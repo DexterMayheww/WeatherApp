@@ -129,6 +129,8 @@
                 document.getElementById('celciusToggle').style.color = "#2d3748";
                 document.getElementById('fahrenheitToggle').style.color = "#e2e8f0";
             }
+            // Call the main changeUnitColors function to ensure proper initialization
+            weatherApp.changeUnitColors();
         }
 
         window.addEventListener('load', () => changeUnitColorsAtStart());
@@ -196,7 +198,15 @@
                     }
                 }
 
-                // 2. In the background, fetch fresh data based on priority
+                // 2. For Android, let the native code handle the automatic location trigger
+                // For browser, continue with the existing logic
+                if (this.isAndroid) {
+                    // Android will automatically call getCurrentLocation() via evaluateJavascript
+                    // Just wait for that call, don't try to get location here
+                    return;
+                }
+
+                // 3. Browser logic - try to get fresh data based on priority
                 try {
                     if (navigator.permissions) {
                         try {
@@ -623,12 +633,26 @@
                     const btn = document.getElementById('geolocationBtn');
                     let loadingStateSet = false;
 
+                    // For Android, reduce the delay before showing loading state
+                    const loadingDelay = this.isAndroid ? 100 : 250;
+                    
                     // Delay setting the loading state to avoid flashing on instant failure
                     const loadingTimeout = setTimeout(() => {
                         btn.innerHTML = '<span>Loading...</span>';
                         btn.disabled = true;
                         loadingStateSet = true;
-                    }, 250);
+                    }, loadingDelay);
+
+                    // For Android, use more permissive geolocation options
+                    const options = this.isAndroid ? {
+                        enableHighAccuracy: false, // Less strict for faster response on Android
+                        timeout: 15000, // Longer timeout for Android
+                        maximumAge: 300000 // Accept cached location up to 5 minutes old
+                    } : {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 60000
+                    };
 
                     navigator.geolocation.getCurrentPosition(
                         async (position) => {
@@ -642,15 +666,21 @@
                             const { latitude, longitude } = position.coords;
                             this.lastLocationSource = 'geolocation'; // Add this line
                             this.currentCoords = { lat: latitude, lon: longitude };
-                            const response = await fetch('/api/geolocation', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ lat: latitude, lon: longitude })
-                            });
-                            if (response.ok) {
-                                const data = await response.json();
-                                document.getElementById('cityInput').value = data.name;
+                            
+                            try {
+                                const response = await fetch('/api/geolocation', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ lat: latitude, lon: longitude })
+                                });
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    document.getElementById('cityInput').value = data.name;
+                                }
+                            } catch (error) {
+                                console.warn('Failed to get city name from coordinates:', error);
                             }
+                            
                             await this.searchWeather();
 
                             btn.innerHTML = '<span>Use My Location</span>';
@@ -659,11 +689,29 @@
                         },
                         (error) => {
                             clearTimeout(loadingTimeout);
-                            this.showMessage('Location access denied or unavailable.', 'error');
+                            let errorMessage = 'Location access denied or unavailable.';
+                            
+                            // Provide more specific error messages for Android
+                            if (this.isAndroid) {
+                                switch(error.code) {
+                                    case error.PERMISSION_DENIED:
+                                        errorMessage = 'Location permission denied. Please enable location access in settings.';
+                                        break;
+                                    case error.POSITION_UNAVAILABLE:
+                                        errorMessage = 'Location unavailable. Please check GPS settings.';
+                                        break;
+                                    case error.TIMEOUT:
+                                        errorMessage = 'Location request timed out. Please try again.';
+                                        break;
+                                }
+                            }
+                            
+                            this.showMessage(errorMessage, 'error');
                             btn.innerHTML = '<span>Use My Location</span>';
                             btn.disabled = false;
                             reject(error);
-                        }
+                        },
+                        options
                     );
                 });
             }
@@ -1203,6 +1251,7 @@
                 this.isDarkMode = !this.isDarkMode;
                 document.body.classList.toggle('dark-theme', this.isDarkMode);
                 document.getElementById('themeSwitch').classList.toggle('active', this.isDarkMode);
+                // Store the manual preference (this overrides auto-detection)
                 localStorage.setItem('weatherTheme', this.isDarkMode ? 'dark' : 'light');
             }
 
@@ -1210,11 +1259,15 @@
                 const savedTheme = localStorage.getItem('weatherTheme');
                 const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-                if (savedTheme === 'dark' || (savedTheme === null && prefersDark)) {
-                    this.isDarkMode = true;
-                    document.body.classList.add('dark-theme');
-                    document.getElementById('themeSwitch').classList.add('active');
+                // Auto-detect if no manual preference is saved
+                if (savedTheme === null) {
+                    this.isDarkMode = prefersDark;
+                } else {
+                    this.isDarkMode = savedTheme === 'dark';
                 }
+
+                document.body.classList.toggle('dark-theme', this.isDarkMode);
+                document.getElementById('themeSwitch').classList.toggle('active', this.isDarkMode);
 
                 // Listen for changes in system preference
                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
@@ -1223,6 +1276,7 @@
                         this.isDarkMode = e.matches;
                         document.body.classList.toggle('dark-theme', this.isDarkMode);
                         document.getElementById('themeSwitch').classList.toggle('active', this.isDarkMode);
+                        this.changeUnitColors(); // Update unit colors when theme changes
                     }
                 });
             }
