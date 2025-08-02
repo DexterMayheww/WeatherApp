@@ -150,6 +150,9 @@
                 this.tabsContainer = document.querySelector('.tabs-container');
                 this.scrollbarThumb = document.querySelector('.tabs-scrollbar-thumb');
                 this.init();
+                // Add Android interface detection and caching methods
+                this.isAndroid = typeof Android !== 'undefined';
+                this.setupAndroidCaching();
             }
 
             init() {
@@ -229,6 +232,80 @@
                         // Only show error if there's nothing cached to display
                         this.showMessage('Could not load weather. Please check connection.', 'error');
                     }
+                }
+            }
+
+            setupAndroidCaching() {
+                if (!this.isAndroid) return;
+                
+                // Listen for when weather data is successfully loaded
+                this.cacheWeatherData = (data, coords) => {
+                    try {
+                        const cacheData = {
+                            weatherData: data,
+                            coordinates: coords,
+                            timestamp: Date.now(),
+                            units: this.currentUnits
+                        };
+                        
+                        // Store in localStorage for Android WebView to access
+                        localStorage.setItem('android_weather_cache', JSON.stringify(cacheData));
+                        
+                        // Also store as the primary cache key that Android will look for
+                        localStorage.setItem('cached_weather_data', JSON.stringify(data));
+                        
+                        // Call Android interface method
+                        if (typeof Android !== 'undefined' && Android.cacheWeatherData) {
+                            Android.cacheWeatherData(JSON.stringify(data));
+                        }
+                        
+                    } catch (error) {
+                        console.error('Failed to cache weather data:', error);
+                    }
+                };
+            }
+
+            determineAndCacheLocation(data) {
+                if (!this.isAndroid) return;
+                
+                try {
+                    let locationToCache = null;
+                    
+                    // Priority 1: Current location (if geolocation was used)
+                    if (this.currentCoords && this.lastLocationSource === 'geolocation') {
+                        locationToCache = {
+                            type: 'geolocation',
+                            lat: this.currentCoords.lat,
+                            lon: this.currentCoords.lon,
+                            name: data.current.city
+                        };
+                    }
+                    // Priority 2: First favorite location
+                    else if (this.favorites.length > 0) {
+                        const firstFav = this.favorites[0];
+                        locationToCache = {
+                            type: 'favorite',
+                            lat: firstFav.lat,
+                            lon: firstFav.lon,
+                            name: firstFav.name
+                        };
+                    }
+                    // Priority 3: Last searched location
+                    else if (this.currentCoords) {
+                        locationToCache = {
+                            type: 'search',
+                            lat: this.currentCoords.lat,
+                            lon: this.currentCoords.lon,
+                            name: data.current.city
+                        };
+                    }
+                    
+                    if (locationToCache) {
+                        localStorage.setItem('android_preferred_location', JSON.stringify(locationToCache));
+                    }
+                    
+                } catch (error) {
+                    console.error('Failed to determine cache location:', error);
                 }
             }
 
@@ -412,6 +489,8 @@
                     this.updateTabScrollIndicators();
                     this.updateTabScrollbar(); // Add this line
                 });
+                // Add location source tracking
+                this.lastLocationSource = null;
             }
 
             updateTabScrollIndicators() {
@@ -561,6 +640,7 @@
                             }
                             
                             const { latitude, longitude } = position.coords;
+                            this.lastLocationSource = 'geolocation'; // Add this line
                             this.currentCoords = { lat: latitude, lon: longitude };
                             const response = await fetch('/api/geolocation', {
                                 method: 'POST',
@@ -651,10 +731,23 @@
                         console.log('Response data:', data);
                         
                         this.currentData = data;
+
+                        // Cache the weather data for Android
+                        if (this.isAndroid) {
+                            this.cacheWeatherData(data, this.currentCoords);
+                            this.determineAndCacheLocation(data);
+                        }
+
                         this.currentCoords = { lat: data.current.lat, lon: data.current.lon };
                         
                         // Cache the data
                         this.setCachedWeather(data.current.lat, data.current.lon, this.currentUnits, data);
+
+                        // Update Android cache with fresh data
+                        if (this.isAndroid) {
+                            this.cacheWeatherData(data, this.currentCoords);
+                            this.determineAndCacheLocation(data);
+                        }
 
                         try {
                             localStorage.setItem('lastWeatherData', JSON.stringify(data));
@@ -1010,6 +1103,7 @@
             loadFavorite(name, lat, lon) {
                 document.getElementById('cityInput').value = name;
                 this.currentCoords = { lat, lon };
+                this.lastLocationSource = 'favorite'; // Add this line
                 this.searchWeather();
                 this.showTab('current', 0);
                 
@@ -1025,6 +1119,11 @@
                 if (!this.favorites.some(fav => fav.name === city && fav.lat === lat && fav.lon === lon)) {
                     this.favorites.push({ name: city, country, lat, lon });
                     localStorage.setItem('weatherFavorites', JSON.stringify(this.favorites));
+
+                    // Update Android cache if this becomes the first favorite
+                    if (this.isAndroid && this.favorites.length === 1 && this.currentData) {
+                        this.determineAndCacheLocation(this.currentData);
+                    }
                     
                     // Load weather data for the new favorite
                     this.loadFavoritesWeatherData();
