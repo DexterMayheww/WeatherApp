@@ -208,12 +208,6 @@ body.dark-theme .search-input:focus {
     transition: all 1s ease;
 }
 
-body.dark-theme .search-btn::before,
-body.dark-theme .geo-btn::before,
-body.dark-theme .control-btn::before {
-    background: var(--border-light);
-}
-
 /* Background Layer */
 .search-btn::after,
 .geo-btn::after,
@@ -239,7 +233,8 @@ body.dark-theme .control-btn::before {
 }
 
 body.dark-theme .control-btn::after {
-    background: var(--border-light);
+    background: var(--background-dark);
+    color: #e2e8f0;
 }
 
 /* Text Layer */
@@ -249,13 +244,13 @@ body.dark-theme .control-btn::after {
     position: relative;
     z-index: 2;
     transition: all 0.3s ease;
-    color: var(--text-color-light);
+    color: var(--text-light);
 }
 
 body.dark-theme .search-btn span,
 body.dark-theme .geo-btn span,
 body.dark-theme .control-btn span {
-    color: var(--text-color-dark);
+    color: var(--text-dark);
 }
 
 

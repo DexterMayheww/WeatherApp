@@ -29,7 +29,7 @@
                         </div>
                     </div>
                     <div class="control-item">
-                        <button id="favoritesBtn" class="control-btn">⭐ Favorites</button>
+                        <button id="favoritesBtn" class="control-btn"><span>⭐ Favorites</span></button>
                     </div>
                 </div>
             </div>
@@ -41,8 +41,8 @@
                         <div class="suggestions" id="suggestions"></div>
                     </div>
                     <div class="button-group">
-                        <button type="button" id="searchBtn" class="search-btn">Get Weather</button>
-                        <button type="button" id="geolocationBtn" class="geo-btn">Use My Location</button>
+                        <button type="button" id="searchBtn" class="search-btn"><span>Get Weather</span></button>
+                        <button type="button" id="geolocationBtn" class="geo-btn"><span>Use My Location</span></button>
                     </div>
                 </div>
             </div>
@@ -625,7 +625,7 @@
 
                     // Delay setting the loading state to avoid flashing on instant failure
                     const loadingTimeout = setTimeout(() => {
-                        btn.textContent = 'Loading...';
+                        btn.innerHTML = '<span>Loading...</span>';
                         btn.disabled = true;
                         loadingStateSet = true;
                     }, 250);
@@ -635,7 +635,7 @@
                             clearTimeout(loadingTimeout);
                             // If loading state wasn't set yet, set it now for feedback
                             if (!loadingStateSet) {
-                                btn.textContent = 'Loading...';
+                                btn.innerHTML = '<span>Loading...</span>';
                                 btn.disabled = true;
                             }
                             
@@ -653,14 +653,14 @@
                             }
                             await this.searchWeather();
 
-                            btn.textContent = 'Use My Location';
+                            btn.innerHTML = '<span>Use My Location</span>';
                             btn.disabled = false;
                             resolve();
                         },
                         (error) => {
                             clearTimeout(loadingTimeout);
                             this.showMessage('Location access denied or unavailable.', 'error');
-                            btn.textContent = 'Use My Location';
+                            btn.innerHTML = '<span>Use My Location</span>';
                             btn.disabled = false;
                             reject(error);
                         }
@@ -1207,11 +1207,24 @@
             }
 
             loadTheme() {
-                if (localStorage.getItem('weatherTheme') === 'dark') {
+                const savedTheme = localStorage.getItem('weatherTheme');
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+                if (savedTheme === 'dark' || (savedTheme === null && prefersDark)) {
                     this.isDarkMode = true;
                     document.body.classList.add('dark-theme');
                     document.getElementById('themeSwitch').classList.add('active');
                 }
+
+                // Listen for changes in system preference
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                    // Only apply if no theme is manually set in localStorage
+                    if (localStorage.getItem('weatherTheme') === null) {
+                        this.isDarkMode = e.matches;
+                        document.body.classList.toggle('dark-theme', this.isDarkMode);
+                        document.getElementById('themeSwitch').classList.toggle('active', this.isDarkMode);
+                    }
+                });
             }
 
             getDynamicWeatherStyles(weather_condition, is_day = true) {
@@ -1271,7 +1284,7 @@
             setLoading(isLoading) {
                 const btn = document.getElementById('searchBtn');
                 btn.disabled = isLoading;
-                btn.textContent = isLoading ? 'Loading...' : 'Get Weather';
+                btn.innerHTML = isLoading ? '<span>Loading...</span>' : '<span>Get Weather</span>';
                 if (isLoading) {
                     document.getElementById('currentWeather').innerHTML = `<div class="loading"><div class="loading-spinner"></div><p>Fetching weather data...</p></div>`;
                 }
